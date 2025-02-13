@@ -75,6 +75,13 @@ const Results = () => {
     setTotal(total);
   };
 
+  function handleAddToCart(RouteID: string): void {
+    console.log(RouteID);
+    // throw new Error("Function not implemented.");
+  }
+
+  console.log(state);
+
   return (
     <div>
       {routes.map((route) => (
@@ -105,41 +112,12 @@ const Results = () => {
               </Button>
             </CardContent>
           </Card>
-          {/* <div key={route.RouteID} id={route.RouteID}> */}
-          {/* <h1>{route.Day}</h1>
-            <h2>
-              Departing From {route.Departure} - Arriving At {route.Arrival}
-            </h2>
-            <p>
-              Departing At {route.DepartureTime} - Arriving At{" "}
-              {route.ArrivalTime}
-            </p>
-            {route.StopAt && (
-              <div>
-                <h3>Stop at: {route.StopAt}</h3>
-                <p>
-                  Departing At {route.DepartureTime2} - Arriving At{" "}
-                  {route.ArrivalTime2}
-                </p>
-                <p>Time Ashore: {route.TimeAshore}</p>
-              </div>
-            )}
-            <button onClick={() => handleFetchPrice(route)}>Price</button> */}
-          {/* Check if prices are correctly filtered by routeID */}
-          {/* {routeID === route.RouteID && price && (
-              <div>
-                {price.map((p) => (
-                  <div key={p.PriceID}>
-                    <h4>{p.AgeCategory}</h4>
-                    <p>£{p.PriceAmount}</p>
-                  </div>
-                ))}
-              </div>
-            )} */}
-          {/* </div> */}
         </>
       ))}
       Total Price: £{total}
+      <Button onClick={() => handleAddToCart(selectedRoute)}>
+        Add to Cart
+      </Button>
     </div>
   );
 };

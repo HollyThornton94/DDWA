@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/AuthHooks";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Button } from "../../components/ui/button";
 
 const RegisterForm = () => {
   const navigate = useNavigate();
