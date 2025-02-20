@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "../components/ui/card";
+import { Card, CardContent, CardHeader } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import {
   Select,
@@ -212,6 +212,7 @@ const Home = () => {
                         ret_date,
                         passenger,
                         accessibility,
+                        isReturn,
                       },
                     })
                   }
@@ -224,7 +225,9 @@ const Home = () => {
           </Card>
         </div>
       </div>
-      <p className="relative">Hello</p>
+      <div className="w-11/12 md:w-9/12  xl:w-5/12 mx-auto">
+        <img src="../timetable.png" alt="Timetable" className="w-full mt-4" />
+      </div>
     </>
   );
 };

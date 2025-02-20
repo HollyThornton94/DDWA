@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useUserContext } from "../context/AuthHooks";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -10,13 +10,24 @@ import {
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
 import { ShoppingCartIcon } from "lucide-react";
+import { useCart } from "../context/CartContext"; // Import useCart hook
+import CartModal from "../components/ui/CartModal";
+import { Button } from "./ui/button";
+
+interface CartItem {
+  outbound: any;
+  return: any;
+  priceDetails: any[];
+  totalPrice: number;
+}
 
 const Navbar = () => {
   const { user, isAuthenticated, checkAuthUser, setIsAuthenticated } =
     useUserContext();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-
+  const { cart } = useCart(); // Access cart state from context
+  const [isCartOpen, setIsCartOpen] = useState(false);
   // UseEffect to verify user on initial load
   useEffect(() => {
     checkAuthUser();
@@ -117,7 +128,66 @@ const Navbar = () => {
                 <ShoppingCartIcon className="size-4 mr-2" />
                 Cart
               </DropdownMenuTrigger>
-              <DropdownMenuContent>Cart is empty</DropdownMenuContent>
+              <DropdownMenuContent>
+                {cart.length === 0 ? (
+                  <p>Cart is empty</p>
+                ) : (
+                  <div className="fixed top-12 flex justify-center items-center w-96 h-96 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-blue-200 p-6 rounded-lg shadow-lg w-full">
+                      <h2 className="text-xl font-bold mb-4">Your Cart</h2>
+
+                      {cart.length === 0 ? (
+                        <p>Your cart is empty.</p>
+                      ) : (
+                        cart.map((item, index) => (
+                          <div key={index} className="border-b pb-3 mb-3">
+                            <h3 className="text-lg font-semibold">
+                              Trip {index + 1}
+                            </h3>
+
+                            {/* Outbound Trip */}
+                            {item.outbound && (
+                              <div>
+                                <h4 className="font-medium underline">
+                                  Outbound Trip
+                                </h4>
+                                <p>Departure: {item.outbound.Departure}</p>
+                                <p>Arrival: {item.outbound.Arrival}</p>
+                                <p>Depart Time: {item.outbound.DepartTime}</p>
+                                <p>Arrival Time: {item.outbound.ArrivalTime}</p>
+                              </div>
+                            )}
+
+                            {/* Return Trip */}
+                            {item.return && (
+                              <div className="mt-2">
+                                <h4 className="font-medium underline">
+                                  Return Trip
+                                </h4>
+                                <p>Departure: {item.return.Departure}</p>
+                                <p>Arrival: {item.return.Arrival}</p>
+                                <p>Depart Time: {item.return.DepartTime}</p>
+                                <p>Arrival Time: {item.return.ArrivalTime}</p>
+                              </div>
+                            )}
+
+                            <h4 className="font-medium mt-2 underline">
+                              Total Price
+                            </h4>
+                            <p className="text-lg font-bold">
+                              £{item.totalPrice.toFixed(2)}
+                            </p>
+
+                            <Button onClick={() => navigate("/checkout")}>
+                              Checkout
+                            </Button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </DropdownMenuContent>
             </DropdownMenu>
           </ul>
         </div>

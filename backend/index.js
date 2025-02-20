@@ -62,13 +62,47 @@ app.post("/routes", async (req, res) => {
 });
 
 app.post("/price", async (req, res) => {
-  const { RouteID } = req.body;
+  const { RouteID, adults, teens, children, infants } = req.body;
 
   try {
     const connection = await db.getConnection(); // Get the database connection
+    await connection.beginTransaction(); // Begin a transaction
     try {
-      const sql = "SELECT * FROM Pricing WHERE RouteID = ?";
-      const [result] = await connection.query(sql, [RouteID]); // Use async/await for the query
+      let sql = "SELECT * FROM Pricing WHERE RouteID = ?"; // SQL query to get the pricing information
+      const queryParams = [RouteID]; // Parameters for the query
+
+      if (adults > 0 || teens > 0 || children > 0 || infants > 0) {
+        let conditions = [];
+
+        if (adults > 0) {
+          conditions.push("AgeCategory = 'adult' ");
+          queryParams.push(adults);
+        }
+
+        if (teens > 0) {
+          conditions.push("AgeCategory = '11-16' ");
+          queryParams.push(teens);
+        }
+
+        if (children > 0) {
+          conditions.push("AgeCategory = '3-10' ");
+          queryParams.push(children);
+        }
+
+        if (infants > 0) {
+          conditions.push("AgeCategory = '0-2' ");
+          queryParams.push(infants);
+        }
+
+        sql += " AND (" + conditions.join(" OR ") + ")";
+      }
+
+      console.log(sql);
+      console.log(queryParams);
+
+      const [result] = await connection.query(sql, queryParams); // Use async/await for the query
+
+      console.log(result);
 
       if (result.length === 0) {
         return res.status(404).json({
@@ -76,13 +110,18 @@ app.post("/price", async (req, res) => {
         });
       }
 
-      res.status(200).send(result); // Send back the result
+      let total = 0;
+      result.forEach((row) => {
+        total += row.PriceAmount * queryParams[queryParams.length - 1];
+      });
+
+      res.json({ total }); // Send back the result
     } catch (err) {
       console.error(err); // Log the error
       res.status(500).json({ message: "Database query error." }); // Send error response
     } finally {
       connection.release(); // Ensure the connection is released
-    }
+    } // Release the connection
   } catch (err) {
     console.error(err); // Log the error
     res.status(500).json({ message: "Internal server error." }); // Send error response
@@ -165,7 +204,7 @@ app.post("/login", async (req, res) => {
           id: user.CustomerID,
           name: user.Forename + " " + user.Surname,
           email: user.Email,
-          isAdmin: user.isAdmin,
+          isAdmin: user.Admins === 1 ? true : false,
         },
         secretKey,
         {
@@ -192,11 +231,17 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/currentUser", authenticate, async (req, res) => {
-  const usertoken = req.headers.authorization;
-  const token = usertoken.split(" ");
-  const decoded = jwt.verify(token[1], secretKey);
-  const { id, email, name, isAdmin } = decoded;
-  res.status(200).json({ id: id, email: email, name: name, isAdmin: isAdmin });
+  try {
+    const usertoken = req.headers.authorization;
+    const token = usertoken.split(" ");
+    const decoded = jwt.verify(token[1], secretKey);
+    const { id, email, name, isAdmin } = decoded;
+    res
+      .status(200)
+      .json({ id: id, email: email, name: name, isAdmin: isAdmin });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 app.listen(8080, () => {
