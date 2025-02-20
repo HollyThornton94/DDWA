@@ -11,6 +11,7 @@ import { Separator } from "../components/ui/separator";
 import { Button } from "../components/ui/button";
 import CartModal from "../components/ui/CartModal";
 import { useCart } from "../context/CartContext"; // Import useCart hook
+import { getEarliestDateForDay } from "../lib/utils";
 
 const Results = () => {
   const { state } = useLocation();
@@ -34,6 +35,9 @@ const Results = () => {
     DepartureTime2?: string;
     ArrivalTime2?: string;
     TimeAshore?: string;
+    AvailableFrom: string;
+    AvailableTo: string;
+    earliestDate: string | null;
   }
 
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -59,7 +63,47 @@ const Results = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setRoutes(data);
+        // Map routes to include their earliest available date
+        const mappedRoutes = data
+          .map((route) => {
+            const earliestDate = getEarliestDateForDay(
+              dep_date,
+              route.Days,
+              route.AvailableFrom,
+              route.AvailableTo
+            );
+
+            console.log(
+              `Route ${route.RouteID} - Earliest Date:`,
+              earliestDate
+            ); // DEBUG LOG
+
+            return {
+              ...route,
+              earliestDate,
+              earliestDateObj: earliestDate
+                ? new Date(earliestDate.split(" (")[1].slice(0, -1))
+                : null,
+            };
+          })
+          .filter((route) => route.earliestDateObj !== null); // Remove routes with no available date
+
+        console.log(
+          "Before Sorting:",
+          mappedRoutes.map((r) => ({ id: r.RouteID, date: r.earliestDateObj }))
+        ); // DEBUG LOG
+
+        // Sort routes by the actual earliest date
+        const sortedRoutes = mappedRoutes.sort(
+          (a, b) => a.earliestDateObj.getTime() - b.earliestDateObj.getTime()
+        );
+
+        console.log(
+          "After Sorting:",
+          sortedRoutes.map((r) => ({ id: r.RouteID, date: r.earliestDateObj }))
+        ); // DEBUG LOG
+
+        setRoutes(sortedRoutes);
       })
       .catch((error) => console.error("Error fetching routes:", error));
   };
@@ -144,7 +188,11 @@ const Results = () => {
           {routes.map((route) => (
             <Card className="w-[350px]" key={route.RouteID} id={route.RouteID}>
               <CardHeader>
-                <CardTitle>{route.Days}</CardTitle>
+                <CardTitle>
+                  <div className="flex flex-col gap-2">
+                    <span>{route.earliestDate}</span>
+                  </div>
+                </CardTitle>
                 <CardDescription>
                   Departing From {route.Departure} at {route.DepartTime} -
                   Arriving At {route.Arrival} at {route.ArrivalTime}

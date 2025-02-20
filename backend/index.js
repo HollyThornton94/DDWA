@@ -244,6 +244,89 @@ app.post("/currentUser", authenticate, async (req, res) => {
   }
 });
 
+app.post("/booking", authenticate, async (req, res) => {
+  const { outboundID, returnID, outboundDate, returnDate, total, passengers } =
+    req.body;
+
+  if (!outboundID || !passengers) {
+    res.status(400).json({ message: "Missing Required Fields." });
+    return;
+  }
+
+  const connection = await db.getConnection();
+  await connection.beginTransaction();
+  try {
+    const query =
+      "INSERT INTO Bookings (CustomerID, RouteId, TotalCost, BookingDate) VALUES (?, ?, ?, ?)";
+    const queryParams = [req.user.id, outboundID, total, outboundDate];
+
+    const oubountBookingResult = await connection.query(query, queryParams);
+
+    await connection.commit();
+
+    const oubountBookingId = oubountBookingResult[0].insertId;
+
+    const bookingPassengerQuery =
+      "INSERT INTO Passengers (BookingID, PassportNo, Forename, Surname, DOB, Assistance) VALUES (?, ?, ?, ?, ?, ?)";
+
+    await Promise.all(
+      passengers.map(async (passenger) => {
+        const passengerParams = [
+          oubountBookingId,
+          passenger.passport,
+          passenger.firstName,
+          passenger.lastName,
+          passenger.dob,
+          passenger.assistance,
+        ];
+
+        await connection.query(bookingPassengerQuery, passengerParams);
+      })
+    );
+
+    await connection.commit();
+
+    if (returnID) {
+      const returnBookingParams = [req.user.id, returnID, total, returnDate];
+
+      const returnBookingResult = await connection.query(
+        query,
+        returnBookingParams
+      );
+
+      const returnBookingId = returnBookingResult[0].insertId;
+
+      await Promise.all(
+        passengers.map(async (passenger) => {
+          const passengerParams = [
+            returnBookingId,
+            passenger.passport,
+            passenger.firstName,
+            passenger.lastName,
+            passenger.dob,
+            passenger.assistance,
+          ];
+
+          await connection.query(bookingPassengerQuery, passengerParams);
+        })
+      );
+
+      await connection.commit();
+
+      res.status(200).json({
+        message: "Booking successful.",
+        oubountBookingId,
+        returnBookingId,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+    await connection.rollback();
+  } finally {
+    connection.release();
+  }
+});
+
 app.listen(8080, () => {
   console.log(`Server is running`);
 });

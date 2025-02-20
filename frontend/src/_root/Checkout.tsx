@@ -4,7 +4,7 @@ import { useCart } from "../context/CartContext";
 import { Button } from "../components/ui/button";
 
 const Checkout = () => {
-  const { cart } = useCart();
+  const { cart, passengerDetails, setPassengerDetails } = useCart();
   const navigate = useNavigate();
 
   // Calculate total number of passengers from cart
@@ -17,6 +17,8 @@ const Checkout = () => {
       (item.passengers.teen || 0),
     0
   );
+
+  console.log(cart);
 
   // Initialize passengers state dynamically
   const [passengers, setPassengers] = useState(
@@ -40,8 +42,15 @@ const Checkout = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const bookingDetails = {
+      outboundID: cart[0].outbound[0].RouteID,
+      returnID: cart[0].return[0].RouteID,
+      outboundDate: cart[0].outbound[0].RouteID,
+    };
+
     console.log("Submitted Passenger Details:", passengers);
-    // navigate("/confirmation");
+    navigate("/booking");
   };
 
   return (

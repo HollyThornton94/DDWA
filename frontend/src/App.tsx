@@ -8,6 +8,7 @@ import SignInForm from "./_auth/forms/SignInForm";
 import RegisterForm from "./_auth/forms/RegisterForm";
 import Checkout from "./_root/Checkout";
 import { CartProvider } from "./context/CartContext";
+import Booking from "./_root/booking";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="/results" element={<Results />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/booking" element={<Booking />} />
         </Route>
       </Routes>
     </CartProvider>
