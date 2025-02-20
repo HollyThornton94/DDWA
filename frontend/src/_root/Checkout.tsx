@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { Button } from "../components/ui/button";
 
 const Checkout = () => {
   const { cart } = useCart();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   // Calculate total number of passengers from cart
   const passengerCount = cart.reduce(
